@@ -2,6 +2,7 @@ name: Build and deploy a container to an Azure Web App
 
 env:
   AZURE_WEBAPP_NAME: 'applucas'
+  REGISTRY_IMAGE: 'acr21-htgbfzbtdue4gxcw.azurecr.io/minha-app:latest'
 
 on:
   push:
@@ -10,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  # id-token: write # Descomente esta linha se estiver usando login por OIDC (sem segredos)
 
 jobs:
   build:
@@ -19,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login no Azure
-        uses: azure/login@v1
+        uses: azure/login@v2 # Atualizado para a v2 (mais recente e segura)
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -31,11 +33,11 @@ jobs:
 
       - name: Build Docker
         run: |
-          docker build -t acr21-htgbfzbtdue4gxcw.azurecr.io/minha-app:latest .
+          docker build -t ${{ env.REGISTRY_IMAGE }} .
 
       - name: Push Docker
         run: |
-          docker push acr21-htgbfzbtdue4gxcw.azurecr.io/minha-app:latest
+          docker push ${{ env.REGISTRY_IMAGE }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,9 +45,12 @@ jobs:
 
     steps:
       - name: Login Azure
-        uses: azure/login@v1
+        uses: azure/login@v2 # Atualizado para a v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Restart WebApp
-        run: |
+      - name: Deploy no Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          images: ${{ env.REGISTRY_IMAGE }}
