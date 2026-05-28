@@ -26,7 +26,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Login no ACR
-        run: az acr login --name acr21
+        run: 12345678-abcd-efgh-xxxx-xxxxxxxx
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
